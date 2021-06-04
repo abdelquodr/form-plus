@@ -31,7 +31,7 @@ const reducer = produce((draft, action) => {
       draft.post = action.post
       return
     case 'FETCH_POST_ERROR':
-      draft.err = action.err
+      draft.err = true
       draft.loading = false
       return
     default:
