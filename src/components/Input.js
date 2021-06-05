@@ -34,14 +34,16 @@ export const WritableInput = ({sortBy, label}) => {
     const [startDate, setStartDate] = useState(new Date());
 
     const handleChange = (date) => {
-        setStartDate(date, label)
-        sortBy !== null &&  sortBy(date, )
+        const name = label;
+        const newDate = new Date(date).toISOString()
+        setStartDate(date)
+        sortBy !== null &&  sortBy( newDate, name )
     }
 
     return (     
             <fieldset className="flex justify-between w-1/3 search lg:w-56">
                 <legend className="px-1 mx-3">{label}</legend>
-                <DatePicker selected={startDate} onChange={handleChange} className="chosen-value text-xs text-gray-500 mx-4 mt-1 mb-2 "/>
+                <DatePicker selected={startDate}  onChange={handleChange} className="chosen-value text-xs text-gray-500 mx-4 mt-1 mb-2 "/>
                 <img src={dropImg} alt="dropdownIcon" className="w-3 text-gray-600 text-bold" />
             </fieldset> 
     )

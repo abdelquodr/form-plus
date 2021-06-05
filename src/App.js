@@ -18,6 +18,7 @@ function App({loading, post, err}) {
   const [ search, setSearch] = useState("");
   const DisplayDataPerPage = useRef([]); 
   const [template, setTemplate] = useState({ Category :'All'})
+  const [searchResult, setSearchResult] = useState([]);
 
 
   // get values from the child component
@@ -25,6 +26,7 @@ function App({loading, post, err}) {
     setPageNumber(num)
   }
   const sortBy = (inputVal, inputName) => {
+    console.log(inputVal, inputName)
     setTemplate((state) => ({ ...state, [inputName]: inputVal}))
   }
   const getSearchVal = (inputVal) => {
@@ -35,20 +37,23 @@ function App({loading, post, err}) {
     // search option for  category 
     const options = {
       includeScore: true,
-      useExtendedSearch: true,
       shouldSort: true,
-      keys: ["category", "created"]
+      keys: ["name"]
     }
-  
-    const fuse = new Fuse(post, options)
-
+ 
 
   // rerun and sliced the needed data for each page when page number changed
   useEffect(() => {
-      if(pageNumber === 1){
+
+      if(search.length > 1){
+        const fuse = new Fuse(post, options)
+        const result = fuse.search(search)
+        
+        setSearchResult( result )
+      }else if(pageNumber === 1){
         const slicedData = post.length > 0 && post?.slice(0, 15)
         DisplayDataPerPage.current = slicedData;
-      }else if(pageNumber > 1 ){
+      }else if(pageNumber > 1){
         const start = (pageNumber - 1) * 15
         const end =  start + 15;
         const slicedData = post.length > 0 && post?.slice(start, end)
@@ -56,39 +61,33 @@ function App({loading, post, err}) {
       }else if (pageNumber){
         const slicedData = post.length > 0 && post?.slice(0, 15)
         DisplayDataPerPage.current = slicedData;
-        fuse.search({ $and: [{ category: template.Category }, { created: template.Date }]})
-      }else if(Search){
-        
       }
 
-  }, [pageNumber, DisplayDataPerPage, post, template, search])  
+  }, [pageNumber, DisplayDataPerPage, post, template, search]) 
+  
+  
 
-    DisplayDataPerPage.current = post.length > 0 && post?.slice(pageNumber, pageNumber + 15);
+  useEffect(() => {
+    const options = {
+      useExtendedSearch: true,
+      includeScore: true,
+      shouldSort: true,
+      keys: [
+        'category',
+        'created'
+      ]
+    }
 
-  // post = search.length > 2 && fuse.search({
-  //   $and: [
-  //     { category: `'${template.Category}` }, // exact match
-  //     { created: `^${template.Date}`}, // started with
-  //     {
-  //       $or: [
-  //         {category: `'${template.Category}` }, // exact match
-  //         // { title: '^lock' }, // Starts with "lock"
-  //         // { title: '!arts' } // Does not have "arts"
-  //       ]
-  //     }
-  //   ]
-  // })
+    const fuse = new Fuse(post, options)
+    const result = fuse.search(template.Category, template.Date).sort((a,b) => b-a)
 
-  const searchingVal = {
-    includeScore: true,
-    isCaseSensitive: false,
-    // distance: ,
-    keys: ["name"]
-  }
+    post = result
+    console.log(post, result)
+  }, [template])
 
-  // const theSearch = new Fuse(post, searchingVal ).search(search)
+    DisplayDataPerPage.current = search.length > 0 ? searchResult.slice(pageNumber, pageNumber + 15) : post?.slice(pageNumber, pageNumber + 15);
 
-  // console.log(search, template, post)
+    console.log(template)
 
   return (
     <div className="mx-8 lg:mx-24 my-12">
@@ -106,12 +105,14 @@ function App({loading, post, err}) {
       { loading && <div className="my-auto mx-auto"> <img className="mx-auto my-56" src={Spinner} alt='spinner' /> </div> }
       <Suspense fallback={<div className="my-auto mx-auto"> <img className="mx-auto my-56" src={Spinner} alt='spinner' /> </div> }>
         <div className="for__smallsize gap-8 lg:gap:16 ">
-          { DisplayDataPerPage.current.length > 0 && 
-              DisplayDataPerPage.current.map((obj, i) => ( <EachCard title={obj.name} desc={obj.description} key={i} /> ))
+          { 
+          search.length > 0 ? DisplayDataPerPage.current.map((obj, i) => <EachCard title={obj.item.name} desc={obj.item.description} key={i} /> ) :
+          (DisplayDataPerPage.current.length > 0 && 
+              DisplayDataPerPage.current.map((obj, i) => ( <EachCard title={obj.name} desc={obj.description} key={i} /> )))
           } 
         </div>
       </Suspense>
-      {DisplayDataPerPage.current.length > 0 && <Paginate totalPage={Math.ceil(post.length / 15)} currentpage={pageNumber} getWhichClick={getWhichClick} /> }
+      {DisplayDataPerPage.current.length > 0 && <Paginate totalPage={Math.ceil(post.length / 15)} currentpage={ pageNumber} getWhichClick={getWhichClick} /> }
     </div>
   );
 }
