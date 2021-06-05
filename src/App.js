@@ -1,11 +1,9 @@
 import React, { useState,useRef,Suspense, useEffect} from 'react'
-import Input from './components/Input'
-// import EachCard from './components/Card'
+import Input, {WritableInput} from './components/Input'
 import Search from './components/Search'
 import Message from './components/Message'
 import Paginate from './components/Paginate'
 import Spinner from './style/icons/spinner.gif'
-import Localbase from 'localbase'
 
 // dependencies
 import {connect} from 'react-redux'
@@ -19,23 +17,30 @@ function App({loading, post, err}) {
   const [pageNumber, setPageNumber] = useState(1)
   const [ search, setSearch] = useState("");
   const DisplayDataPerPage = useRef([]); 
-  const [template, setTemplate] = useState('All')
+  const [template, setTemplate] = useState({ Category :'All'})
 
 
   // get values from the child component
   const getWhichClick = (num) => {
     setPageNumber(num)
   }
-  const sortBy = (inputVal) => {
-    setTemplate(inputVal)
+  const sortBy = (inputVal, inputName) => {
+    setTemplate((state) => ({ ...state, [inputName]: inputVal}))
   }
   const getSearchVal = (inputVal) => {
     setSearch(inputVal)
   }
 
-  const getOrder = (e) => {
-    
-  }
+
+    // search option for  category 
+    const options = {
+      includeScore: true,
+      useExtendedSearch: true,
+      shouldSort: true,
+      keys: ["category", "created"]
+    }
+  
+    const fuse = new Fuse(post, options)
 
 
   // rerun and sliced the needed data for each page when page number changed
@@ -51,51 +56,53 @@ function App({loading, post, err}) {
       }else if (pageNumber){
         const slicedData = post.length > 0 && post?.slice(0, 15)
         DisplayDataPerPage.current = slicedData;
+        fuse.search({ $and: [{ category: template.Category }, { created: template.Date }]})
+      }else if(Search){
+        
       }
 
   }, [pageNumber, DisplayDataPerPage, post, template, search])  
 
-  
-  // get my data from my created dataBase
-  //  post.length > 0 && new Localbase('db').collection('posts').get().then( post => DisplayDataPerPage.current = post[0].post.slice(pageNumber, pageNumber + 15)).catch((err) => alert(err))
     DisplayDataPerPage.current = post.length > 0 && post?.slice(pageNumber, pageNumber + 15);
 
-  // search option for  category 
-  const options = {
-    includeScore: true,
-    keys: ['category'],
-  }
-
-  const fuse = new Fuse(post, options)
-  post = fuse.search(template)
+  // post = search.length > 2 && fuse.search({
+  //   $and: [
+  //     { category: `'${template.Category}` }, // exact match
+  //     { created: `^${template.Date}`}, // started with
+  //     {
+  //       $or: [
+  //         {category: `'${template.Category}` }, // exact match
+  //         // { title: '^lock' }, // Starts with "lock"
+  //         // { title: '!arts' } // Does not have "arts"
+  //       ]
+  //     }
+  //   ]
+  // })
 
   const searchingVal = {
-    // includeScore: true,
+    includeScore: true,
     isCaseSensitive: false,
-    // includeMatches: true,
-    // distance: 10,
+    // distance: ,
     keys: ["name"]
   }
 
-  const theSearch = new Fuse(post, searchingVal ).search('Amet, officia dolore')
+  // const theSearch = new Fuse(post, searchingVal ).search(search)
 
-  console.log(post, loading, err, DisplayDataPerPage)
-
-  console.log(theSearch, search)
+  // console.log(search, template, post)
 
   return (
     <div className="mx-8 lg:mx-24 my-12">
       <div className="flex justify-between mx-0 filter__inputs md:h-10">
           <Search placeholder="Search Template" getSearchVal={getSearchVal} />
           <div className="flex flex-row space-between gap-x-3 w-5/5 lg:w-2/5">  
-            <Input label="Category" valueList={["All","Health","E-commerce","Education"]} sortBy={sortBy}  />
-            <Input label="Order"  valueList={["Default","Ascending","Descending"]}  />
-            <Input label="Date" />
+            <Input label="Category" valueList={["All","Health","E-commerce","Education"]} sortBy={sortBy} />
+            <Input label="Order"  valueList={["Default","Ascending","Descending"]} sortBy={sortBy}  />
+            <WritableInput label="Date" sortBy={sortBy} />
           </div>
       </div>
       
       { <Message err={err} />}
-      {DisplayDataPerPage.current.length > 0 && <h3 className="font-semimedium text-base mb-5" >{`${template} Templates`}</h3>}
+      {DisplayDataPerPage.current.length > 0 && <h3 className="font-semibold text-base mb-5 text-gray-800" >{`${template.Category} Templates`}</h3>}
       { loading && <div className="my-auto mx-auto"> <img className="mx-auto my-56" src={Spinner} alt='spinner' /> </div> }
       <Suspense fallback={<div className="my-auto mx-auto"> <img className="mx-auto my-56" src={Spinner} alt='spinner' /> </div> }>
         <div className="for__smallsize gap-8 lg:gap:16 ">

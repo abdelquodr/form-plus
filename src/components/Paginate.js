@@ -7,8 +7,10 @@ const Paginate = ({totalPage, currentpage, getWhichClick}) => {
         
         if(pageGo === "next"){
             getWhichClick(currentpage > totalPage ? totalPage : currentpage + 1)
+            window.scrollTo(0, 20)
         }else if(pageGo === "previous"){
             getWhichClick(currentpage < 1 ? 1 : currentpage - 1)
+            window.scrollTo(0, 20)
         }
     }
 

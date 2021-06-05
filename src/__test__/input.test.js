@@ -4,12 +4,9 @@ import Input from '../components/Input'
 
 test('check if the label value is received and display', () => {
     const label = 'test';
-    const valueList = []
-    render(<Input label={label} valueList={valueList} />)
+    render(<Input label={label} />)
 
     const labelVal = screen.getByText('test').innerHTML;
-    console.log(valueList)
-    const imgAlt = 
 
     expect(labelVal).toBe('test')
-})   
+})  

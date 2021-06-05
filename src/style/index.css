@@ -122,10 +122,7 @@
     display: none;
   }
 
-  option {
-    width: 5rem;
-    border-width: 0;
-  }
+
 
 
   @media only screen and (max-width: 376px) {
@@ -151,6 +148,32 @@
       margin-top: 1.5em;
     }
   }
+
+  @media only screen and (max-width: 645px) and (min-width: 375px)  {
+    
+    .for__smallsize{
+      display: grid;
+      grid-template-rows:repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr)); 
+    }
+
+    .filter__inputs{
+      display: block;      
+    }
+     
+    .res__small{
+      margin-bottom: 0.5em;
+    }
+
+    .res__small > input {
+      height: 2.5rem
+    }
+
+    .paginate{
+      margin-top: 1.5em;
+    }
+  }
+
 
   @media only screen and (min-width: 640px){
     .for__smallsize{
